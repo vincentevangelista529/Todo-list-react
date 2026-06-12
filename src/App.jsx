@@ -1,15 +1,17 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
+import TodoItem from './TodoItem'
+import TodoAdd from './TodoAdd'
+
 function App() {
-  const [todos, setTodos] = useState([])
-  const [text, setText] = useState('')
+  const [todos, setTodos] = useState(() => {
+    const saved = localStorage.getItem('todos')
+    return saved ? JSON.parse(saved) : []
+  })
   
-  const handleAdd = () => {
-    if (text !== ''){
-      setTodos([...todos, {text: text, done: false}])
-      setText('')
-    }
-  }
+  const handleAdd = (text) => {
+  setTodos([...todos, { text: text, done: false }])
+}
 
   const handleDelete = (index) => {
     setTodos(todos.filter((_, i) => i !== index))
@@ -21,34 +23,27 @@ function App() {
     ))
   }
 
-  return(
-    <div>
+  useEffect(() => {
+    localStorage.setItem('todos', JSON.stringify(todos))
+  }, [todos])
+
+  return (
+  <div className="container">
     <h1>My Todo App</h1>
-    <div className="container">
-    <input className="todos-input"
-      value={text}
-      onChange={(e) => setText(e.target.value)}
-      placeholder="Enter a todos here..." 
-    />
-    <button className="todos-btn" onClick={handleAdd}>Add</button>
+    <TodoAdd onAdd={handleAdd} />
     <ul className="todos-list">
-      {todos.map((todo, index) =>(
-        <li 
-        key={index}
-        onClick = {() => handleToggle(index)}
-        className={todo.done ? 'done' : ''}
-        >
-          {todo.text}
-          <button onClick={(e) =>
-            {e.stopPropagation() 
-            handleDelete(index) 
-            }}>Delete</button>
-        </li>
+      {todos.map((todo, index) => (
+        <TodoItem
+          key={index}
+          todo={todo}
+          index={index}
+          onDelete={handleDelete}
+          onToggle={handleToggle}
+        />
       ))}
     </ul>
-    </div>
-    </div>
-  )
+  </div>
+)
 }
 
 export default App
